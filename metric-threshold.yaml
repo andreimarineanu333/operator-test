@@ -9,24 +9,28 @@ metadata:
     app.kubernetes.io/created-by: coralogix-operator
   name: metric-threshold
 spec:
-  name: metric-threshold alert example
-  description: alert from k8s operator
-  entityLabels:
-    alert_type: security
-    security_severity: high
-  alertType:
-    metricThreshold:
-      metricFilter:
-        promql: |
-          sum(rate(http_requests_total{job="api-server"}[5m])) by (status)
-      missingValues:
-        minNonNullValuesPct: 60
-      rules:
-        - condition:
-            threshold: "100.4"
-            forOverPct: 20
-            ofTheLast:
-              dynamicDuration: 1h15m
-            conditionType: moreThan
-          override:
-            priority: p4
+  items:
+    - name: PrometheusLowAvailability
+      description: Check the platform-data-prometheus Prometheus pods in the observability namespace, confirm they are running and ready, review recent restarts/events, and validate that the jobs targets are reachable and successfully scraped. The alert should clear once at least 2 targets are back up.
+      annotations: {}
+      labels: {}
+      enabled: true
+      platform:
+        kind: coralogix
+        settings:
+          replaceWithZero: false
+          triggeredOnUndetectedValues: false
+          notificationGroups: []
+          minDataCoveragePercent: 100
+          minNonNullValuesPct: 100
+          skipCxEnvIdLabelEnforcement: false
+      expression: |-
+        sum by (job) (
+          up{container="prometheus",job=~"platform-data-prometheus-prometheus",namespace="observability"}
+        )
+      runbook: https://github.com/coralogix/eng-observability/blob/master/metrics/prom/docs/runbooks/PrometheusClusterIsDown.md
+      conditions:
+        - operator: LessThan
+          severity: warning
+          duration: 15m
+          value: '2.0'
