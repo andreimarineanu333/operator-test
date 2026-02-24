@@ -25,8 +25,7 @@ spec:
         - condition:
             threshold: "100.4"
             forOverPct: 20
-            ofTheLast:
-              dynamicDuration: 1h15m
+            ofTheLast: 15m
             conditionType: moreThan
           override:
             priority: p4
