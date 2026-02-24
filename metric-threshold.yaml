@@ -10,27 +10,25 @@ metadata:
   name: metric-threshold
 spec:
   items:
-    - name: metric-threshold
-      description: Check the platform-data-prometheus Prometheus pods in the observability namespace, confirm they are running and ready, review recent restarts/events, and validate that the jobs targets are reachable and successfully scraped. The alert should clear once at least 2 targets are back up.
-      annotations: {}
-      labels: {}
-      enabled: true
+    - name: http-error-rate
+      description: Alert when HTTP 5xx rate exceeds 10/min
+      runbook: https://example.com/runbook
+      expression: sum(rate(http_requests_total{status=~"5.."}[1m]))
+      labels:
+        severity: high
+      annotations:
+        alert_owner: platform
+      conditions:
+        - operator: GreaterThan
+          severity: critical
+          duration: 5m
+          value: "10"
       platform:
         kind: coralogix
         settings:
+          severity: critical
           replaceWithZero: false
-          triggeredOnUndetectedValues: false
-          notificationGroups: []
-          minDataCoveragePercent: 100
+          minDataCoveragePercent: 80
           minNonNullValuesPct: 100
+          triggeredOnUndetectedValues: false
           skipCxEnvIdLabelEnforcement: false
-      expression: |-
-        sum by (job) (
-          up{container="prometheus",job=~"platform-data-prometheus-prometheus",namespace="observability"}
-        )
-      runbook: https://github.com/coralogix/eng-observability/blob/master/metrics/prom/docs/runbooks/PrometheusClusterIsDown.md
-      conditions:
-        - operator: LessThan
-          severity: warning
-          duration: 15m
-          value: '2.0'
