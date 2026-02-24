@@ -10,7 +10,7 @@ metadata:
   name: metric-threshold
 spec:
   items:
-    - name: PrometheusLowAvailability
+    - name: metric-threshold
       description: Check the platform-data-prometheus Prometheus pods in the observability namespace, confirm they are running and ready, review recent restarts/events, and validate that the jobs targets are reachable and successfully scraped. The alert should clear once at least 2 targets are back up.
       annotations: {}
       labels: {}
