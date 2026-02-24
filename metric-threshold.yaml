@@ -7,25 +7,37 @@ metadata:
     app.kubernetes.io/part-of: coralogix-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: coralogix-operator
-  name: metric-threshold
+  name: logs-immediate-alert
 spec:
-  name: metric-threshold alert example
+  name: logs-immediate alert example
   description: alert from k8s operator
+  priority: p2
   entityLabels:
     alert_type: security
     security_severity: high
   alertType:
-    metricThreshold:
-      metricFilter:
-        promql: |
-          sum(rate(http_requests_total{job="api-server"}[5m])) by (status)
-      missingValues:
-        minNonNullValuesPct: 60
-      rules:
-        - condition:
-            threshold: "100.4"
-            forOverPct: 20
-            ofTheLast: 15m
-            conditionType: moreThan
-          override:
-            priority: p4
+    logsImmediate:
+      logsFilter:
+        simpleFilter:
+          luceneQuery: remote_addr_enriched:/.*/
+          labelFilters:
+            applicationName:
+              - operation: includes
+                value: nginx
+              - operation: endsWith
+                value: "1.29"
+            subsystemName:
+              - value: warning
+                operation: is
+              - value: info
+                operation: endsWith
+            severity: [ "warning", "info" ]
+  notificationGroup:
+    router:
+      notifyOn: triggeredAndResolved
+  schedule:
+    timeZone: UTC+02
+    activeOn:
+      dayOfWeek: [ "wednesday", "thursday" ]
+      startTime: 08:30
+      endTime: 20:30
