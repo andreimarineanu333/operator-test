@@ -9,26 +9,24 @@ metadata:
     app.kubernetes.io/created-by: coralogix-operator
   name: metric-threshold
 spec:
-  items:
-    - name: http-error-rate
-      description: Alert when HTTP 5xx rate exceeds 10/min
-      runbook: https://example.com/runbook
-      expression: sum(rate(http_requests_total{status=~"5.."}[1m]))
-      labels:
-        severity: high
-      annotations:
-        alert_owner: platform
-      conditions:
-        - operator: GreaterThan
-          severity: critical
-          duration: 5m
-          value: "10"
-      platform:
-        kind: coralogix
-        settings:
-          severity: critical
-          replaceWithZero: false
-          minDataCoveragePercent: 80
-          minNonNullValuesPct: 100
-          triggeredOnUndetectedValues: false
-          skipCxEnvIdLabelEnforcement: false
+  name: metric-threshold alert example
+  description: alert from k8s operator
+  entityLabels:
+    alert_type: security
+    security_severity: high
+  alertType:
+    metricThreshold:
+      metricFilter:
+        promql: |
+          sum(rate(http_requests_total{job="api-server"}[5m])) by (status)
+      missingValues:
+        minNonNullValuesPct: 60
+      rules:
+        - condition:
+            threshold: "100.4"
+            forOverPct: 20
+            ofTheLast:
+              dynamicDuration: 1h15m
+            conditionType: moreThan
+          override:
+            priority: p4
